@@ -95,7 +95,7 @@ if(!empty($_SESSION["id"])){
         <?php if(!empty($_SESSION["id"])): ?>
 
             <div>
-                <label for="validationCustom04" class="form-label">State</label>
+                <label for="validationCustom04" class="form-label">Rol</label>
                 <select
                     class="form-select"
                     name="rol"

@@ -13,6 +13,7 @@ use Dao\ProductoDao;
 use modelos\Producto;
 use Exception;
 use modelos\Factura;
+use MongoDB\BSON\ObjectId;
 
 class FacturaDao extends Conexion implements IFacturaDao
 {
@@ -24,6 +25,44 @@ class FacturaDao extends Conexion implements IFacturaDao
 
     public function verFactura(string $id): ?Factura
     {
+        try
+        {
+            $coleccion = $this->getConexion(C_FACTURA);
+            $resultados = $coleccion->find([CF_ID => new ObjectId($id)]);
+
+            foreach ($resultados as $resultado)
+            {
+                $factura = new Factura();
+
+                $factura->setId($id);
+                $factura->setDocuemntoPerosna($resultado[CF_DOCUMENTO]);
+                $factura->setTotal($resultado[CF_TOTAL]);
+                $factura->setFecha($resultado[CF_FECHA]);
+                $productos = array();
+
+                foreach ($resultado[CF_PRODUCTOS] as $productoResult){
+                    $producto = new Producto();
+                    $producto->setId($productoResult[CP_ID]);
+                    $producto->setNombre($productoResult[CP_NOMBRE]);
+                    $producto->setImagen($productoResult[CP_IMAGEN]);
+                    $producto->setCodigo($productoResult[CP_CODIGO]);
+                    $producto->setPrecio($productoResult[CP_PRECIO]);
+
+                    $productos[] = $producto;
+                }
+
+                $factura->setProductos($productos);
+
+                return $factura;
+            }
+
+        }
+        catch (Exception $error)
+        {
+
+            echo "Ha ocurrido un error: $error";
+
+        }
         return null;
     }
 
@@ -32,7 +71,7 @@ class FacturaDao extends Conexion implements IFacturaDao
         try
         {
             $coleccion = $this->getConexion(C_FACTURA);
-            $resultados = $coleccion->find([]);
+            $resultados = $coleccion->find([], ["limit" => 20, "sort" => [CF_FECHA => -1]]);
             $facturas = array();
 
             foreach ($resultados as $resultado)
@@ -73,6 +112,47 @@ class FacturaDao extends Conexion implements IFacturaDao
 
     public function verMisFacturas(string $documento): ?array
     {
+        try
+        {
+            $coleccion = $this->getConexion(C_FACTURA);
+            $resultados = $coleccion->find([CF_DOCUMENTO => $documento], ["limit" => 20, "sort" => [CF_FECHA => -1]]);
+            $facturas = array();
+
+            foreach ($resultados as $resultado)
+            {
+                $factura = new Factura();
+
+                $factura->setId($resultado[CF_ID]);
+                $factura->setDocuemntoPerosna($resultado[CF_DOCUMENTO]);
+                $factura->setTotal($resultado[CF_TOTAL]);
+                $factura->setFecha($resultado[CF_FECHA]);
+                $productos = array();
+
+                foreach ($resultado[CF_PRODUCTOS] as $productoResult){
+                    $producto = new Producto();
+                    $producto->setId($productoResult[CP_ID]);
+                    $producto->setNombre($productoResult[CP_NOMBRE]);
+                    $producto->setImagen($productoResult[CP_IMAGEN]);
+                    $producto->setCodigo($productoResult[CP_CODIGO]);
+                    $producto->setPrecio($productoResult[CP_PRECIO]);
+
+                    $productos[] = $producto;
+                }
+
+                $factura->setProductos($productos);
+
+                $facturas[] = $factura;
+            }
+
+            return $facturas;
+
+        }
+        catch (Exception $error)
+        {
+
+            echo "Ha ocurrido un error: $error";
+
+        }
         return null;
     }
 
